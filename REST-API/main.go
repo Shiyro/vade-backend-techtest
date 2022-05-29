@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,8 +25,30 @@ func getDocuments(context *gin.Context) {
 	context.JSON(http.StatusOK, documents)
 }
 
+func getDocumentsById(id string) (*document, error) {
+	for i, t := range documents {
+		if t.ID == id {
+			return &documents[i], nil
+		}
+	}
+	return nil, errors.New("document not found")
+}
+
+func getDocument(context *gin.Context) {
+	id := context.Param("id")
+	document, err := getDocumentsById(id)
+
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
+		return
+	}
+
+	context.JSON(http.StatusOK, document)
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/documents", getDocuments)
+	router.GET("/documents/:id", getDocument)
 	router.Run("localhost:8080")
 }
