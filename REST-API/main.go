@@ -46,9 +46,28 @@ func getDocument(context *gin.Context) {
 	context.JSON(http.StatusOK, document)
 }
 
+func addDocument(context *gin.Context) {
+	var newDocument document
+
+	//On essaye de convertir les donnees recu en JSON
+	if err := context.BindJSON(&newDocument); err != nil {
+		return
+	}
+
+	//Verifie si un document avec le meme id existe
+	if document, err := getDocumentsById(newDocument.ID); document != nil && err == nil {
+		context.JSON(http.StatusConflict, gin.H{"message": "Document with same id already exist"})
+		return
+	}
+
+	documents = append(documents, newDocument)
+	context.JSON(http.StatusCreated, newDocument)
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/documents", getDocuments)
 	router.GET("/documents/:id", getDocument)
+	router.POST("/documents", addDocument)
 	router.Run("localhost:8080")
 }
