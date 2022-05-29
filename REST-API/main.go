@@ -21,11 +21,12 @@ var documents = []document{
 }
 
 func getDocuments(context *gin.Context) {
-	//On retoune toutes les donnees
+	//On retourne toutes les donnees
 	context.JSON(http.StatusOK, documents)
 }
 
 func getDocumentsById(id string) (*document, error) {
+	//Retourne un document par ID
 	for i, t := range documents {
 		if t.ID == id {
 			return &documents[i], nil
@@ -35,10 +36,12 @@ func getDocumentsById(id string) (*document, error) {
 }
 
 func getDocument(context *gin.Context) {
+	//Retourne le document recherche par ID
 	id := context.Param("id")
 	document, err := getDocumentsById(id)
 
 	if err != nil {
+		//Si il n'y a pas de documents correspondant a l'ID, on affiche qu'il est introuvable
 		context.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
 		return
 	}
@@ -64,10 +67,30 @@ func addDocument(context *gin.Context) {
 	context.JSON(http.StatusCreated, newDocument)
 }
 
+func removeDocument(context *gin.Context) {
+	//Supprime un document en fonction de l'ID
+
+	id := context.Param("id")
+
+	for i, t := range documents {
+		if t.ID == id {
+			//On retire le doc de la liste si il est trouve
+			documents[i] = documents[len(documents)-1]
+			documents = documents[:len(documents)-1]
+			context.JSON(http.StatusOK, t)
+			return
+		}
+	}
+
+	//Si le doc n'existe pas on affiche qu'il est introuvable
+	context.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/documents", getDocuments)
 	router.GET("/documents/:id", getDocument)
 	router.POST("/documents", addDocument)
+	router.DELETE("/documents/:id", removeDocument)
 	router.Run("localhost:8080")
 }
